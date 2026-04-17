@@ -4,129 +4,58 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>축의금 대시보드 | wedding marchejeu</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #F7F8FA; color: #191F28; min-height: 100vh; }
-button { cursor: pointer; border: none; background: none; }
-
-/* Header */
-.header { background: #fff; border-bottom: 1px solid #F0F1F3; position: sticky; top: 0; z-index: 100; }
-.header-inner { max-width: 600px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
-.logo-main { font-family: 'DM Serif Display', serif; font-size: 13px; color: #F5C842; }
-
-/* Content */
-.content { max-width: 600px; margin: 0 auto; padding: 20px; }
-
-/* Hero */
-.hero { border-radius: 24px; padding: 26px; color: #fff; }
-.hero.groom { background: linear-gradient(135deg,#1a2744,#3B4CB8); }
-.hero.bride { background: linear-gradient(135deg,#4a1a2e,#B83B6E); }
-.hero-amount { font-size: 32px; font-weight: 800; }
-
-/* Table */
-.table-wrap { background: #fff; border-radius: 20px; overflow: hidden; }
-table { width: 100%; border-collapse: collapse; }
-td, th { padding: 10px; font-size: 12px; text-align: center; }
-th { color: #8B95A1; }
-
-/* Loading */
-.loading { text-align: center; padding: 60px; }
-.error-box { padding: 40px; text-align: center; }
+body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
+.container { max-width:600px; margin:0 auto; padding:20px; }
+.card { background:#fff; padding:20px; border-radius:12px; margin-bottom:12px; }
+.title { font-size:20px; font-weight:bold; margin-bottom:10px; }
 </style>
 </head>
 
 <body>
-
-<div class="header">
-  <div class="header-inner">
-    <div class="logo-main">wedding marchejeu</div>
-    <button onclick="loadData()">🔄</button>
-  </div>
-</div>
-
-<div id="main-content" class="content">
-  <div class="loading">데이터 불러오는 중...</div>
+<div class="container">
+  <div id="app" class="card">불러오는 중...</div>
 </div>
 
 <script>
-
-// URL 파라미터
 const params = new URLSearchParams(window.location.search);
 const CLIENT_CODE = params.get("code");
 const CLIENT_SIDE = params.get("side") || "신랑";
-const IS_GROOM = CLIENT_SIDE === '신랑';
 
-// ⭐ 여기만 바꾸면 됨
-const API_URL = "https://script.google.com/macros/s/AKfycbzgKmWzKQLf3oT2C3CY-A4MYAsvZ6G1nGUx1bQzWCpfp_N7vgeBTqs8IjIY9PIRdIM/exec";
+// 👉 여기만 수정하면 됨
+const API_URL = "https://script.google.com/macros/s/AKfycbXXXXXXXXXXXX/exec";
 
-let records = [];
-
-// 데이터 불러오기
 function loadData() {
-  document.getElementById('main-content').innerHTML = '<div class="loading">불러오는 중...</div>';
-
   fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`, {
-  method: "GET",
-  mode: "cors",
-  redirect: "follow"
-})
+    method: "GET",
+    mode: "cors",
+    redirect: "follow"
+  })
     .then(res => {
-  if (!res.ok) throw new Error("네트워크 오류");
-  return res.json();
-})
+      if (!res.ok) throw new Error("네트워크 오류");
+      return res.json();
+    })
     .then(data => {
       if (data.error) {
-        document.getElementById('main-content').innerHTML =
-          `<div class="error-box">${data.error}</div>`;
+        document.getElementById("app").innerHTML = data.error;
         return;
       }
 
-      records = data.records;
-      renderDashboard();
+      const total = data.records.reduce((s,r)=>s+r.total,0);
+
+      document.getElementById("app").innerHTML = `
+        <div class="title">${CLIENT_SIDE} 측 총 축의금</div>
+        <div>${total.toLocaleString()} 원</div>
+      `;
     })
-    .catch(() => {
-      document.getElementById('main-content').innerHTML =
-        `<div class="error-box">데이터 불러오기 실패</div>`;
+    .catch(err => {
+      console.error(err);
+      document.getElementById("app").innerHTML = "데이터 불러오기 실패";
     });
 }
 
-// 대시보드 렌더
-function renderDashboard() {
-  const total = records.reduce((s,r)=>s+r.total,0);
-
-  document.getElementById('main-content').innerHTML = `
-    <div class="hero ${IS_GROOM ? 'groom':'bride'}">
-      <div>${CLIENT_SIDE} 측 총 축의금</div>
-      <div class="hero-amount">${total.toLocaleString()}원</div>
-    </div>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>성함</th>
-            <th>금액</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${records.map(r=>`
-            <tr>
-              <td>${r.name}</td>
-              <td>${r.total.toLocaleString()}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-// 실행
 loadData();
-
 </script>
-
 </body>
 </html>
