@@ -24,7 +24,7 @@ const CLIENT_CODE = params.get("code");
 const CLIENT_SIDE = params.get("side") || "신랑";
 
 // 👉 여기만 수정하면 됨
-const API_URL = "https://script.google.com/macros/s/AKfycbXXXXXXXXXXXX/exec";
+const API_URL = "https://opensheet.elk.sh/1EZcdNae8ZHoQT_xez5CUQI5jJstAgN6D8QRg-4IZSck/A001_신랑";
 
 function loadData() {
   fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`, {
