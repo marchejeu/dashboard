@@ -67,8 +67,15 @@ let records = [];
 function loadData() {
   document.getElementById('main-content').innerHTML = '<div class="loading">불러오는 중...</div>';
 
-  fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`)
-    .then(res => res.json())
+  fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`, {
+  method: "GET",
+  mode: "cors",
+  redirect: "follow"
+})
+    .then(res => {
+  if (!res.ok) throw new Error("네트워크 오류");
+  return res.json();
+})
     .then(data => {
       if (data.error) {
         document.getElementById('main-content').innerHTML =
