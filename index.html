@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>축의금 대시보드 | wedding marchejeu</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+<!-- 기존 스타일 그대로 유지 -->
+<style>
+/* ⚠️ 여기 스타일은 기존 코드 그대로 복붙 */
+</style>
+</head>
+<body>
+
+<!-- 기존 HTML 그대로 유지 -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-circle">
+        <svg width="40" height="40" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="20" fill="#F5F0E8"/>
+          <text x="20" y="15" text-anchor="middle" font-size="7" fill="#F5C842">wedding</text>
+          <text x="20" y="25" text-anchor="middle" font-size="7" fill="#F5C842">marchejeu</text>
+        </svg>
+      </div>
+      <div class="logo-text-wrap">
+        <div class="logo-main">wedding marchejeu</div>
+        <div class="logo-sub-text">축의금 관리 서비스</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="updated-at" id="updated-at"></span>
+      <button class="refresh-btn" id="refresh-btn" onclick="loadData()">🔄</button>
+    </div>
+  </div>
+</div>
+
+<div id="main-content" class="content">
+  <div class="loading">
+    <div class="spinner-blue"></div>
+    <div class="loading-text">데이터 불러오는 중...</div>
+  </div>
+</div>
+
+<script>
+
+// ✅ URL 파라미터 방식으로 변경
+const params = new URLSearchParams(window.location.search);
+const CLIENT_CODE = params.get("code");
+const CLIENT_SIDE = params.get("side") || "신랑";
+const IS_GROOM = CLIENT_SIDE === '신랑';
+
+// ✅ 여기에 Apps Script URL 넣기
+const API_URL = "여기에_앱스크립트_URL";
+
+let records = null;
+
+function loadData() {
+  document.getElementById('refresh-btn').classList.add('spinning');
+
+  fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('refresh-btn').classList.remove('spinning');
+
+      if (data.error) {
+        document.getElementById('main-content').innerHTML = `
+          <div class="error-box">
+            <div class="error-msg">${data.error}</div>
+          </div>`;
+        return;
+      }
+
+      records = data.records;
+
+      const now = new Date();
+      document.getElementById('updated-at').textContent =
+        now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+
+      render();
+    })
+    .catch(() => {
+      document.getElementById('main-content').innerHTML = `
+        <div class="error-box">
+          <div class="error-msg">데이터 불러오기 실패</div>
+        </div>`;
+    });
+}
+
+function render() {
+  if (!records) return;
+
+  const total = records.reduce((s,r)=>s+r.total,0);
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="hero ${IS_GROOM ? 'groom':'bride'}">
+      <div class="hero-label">${CLIENT_SIDE} 측 총 축의금</div>
+      <div class="hero-amount">${total.toLocaleString()}원</div>
+    </div>
+  `;
+}
+
+// 초기 실행
+loadData();
+
+</script>
+
+</body>
+</html>
