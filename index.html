@@ -19,33 +19,26 @@ body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; }
 </div>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const CLIENT_CODE = params.get("code");
-const CLIENT_SIDE = params.get("side") || "신랑";
 
-// 👉 여기만 수정하면 됨
+// 👉 이 URL은 그대로 사용
 const API_URL = "https://opensheet.elk.sh/1EZcdNae8ZHoQT_xez5CUQI5jJstAgN6D8QRg-4IZSck/A001_신랑";
 
 function loadData() {
-  fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`, {
-    method: "GET",
-    mode: "cors",
-    redirect: "follow"
-  })
+  fetch(API_URL)
     .then(res => {
       if (!res.ok) throw new Error("네트워크 오류");
       return res.json();
     })
     .then(data => {
-      if (data.error) {
-        document.getElementById("app").innerHTML = data.error;
-        return;
-      }
 
-      const total = data.records.reduce((s,r)=>s+r.total,0);
+      // opensheet는 data.records 아님!
+      const total = data.reduce((sum, row) => {
+        const val = Number(row["합계"] || 0);
+        return sum + val;
+      }, 0);
 
       document.getElementById("app").innerHTML = `
-        <div class="title">${CLIENT_SIDE} 측 총 축의금</div>
+        <div class="title">신랑 측 총 축의금</div>
         <div>${total.toLocaleString()} 원</div>
       `;
     })
@@ -56,6 +49,7 @@ function loadData() {
 }
 
 loadData();
+
 </script>
 </body>
 </html>
