@@ -6,102 +6,117 @@
 <title>축의금 대시보드 | wedding marchejeu</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
-<!-- 기존 스타일 그대로 유지 -->
 <style>
-/* ⚠️ 여기 스타일은 기존 코드 그대로 복붙 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #F7F8FA; color: #191F28; min-height: 100vh; }
+button { cursor: pointer; border: none; background: none; }
+
+/* Header */
+.header { background: #fff; border-bottom: 1px solid #F0F1F3; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 600px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo-main { font-family: 'DM Serif Display', serif; font-size: 13px; color: #F5C842; }
+
+/* Content */
+.content { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+/* Hero */
+.hero { border-radius: 24px; padding: 26px; color: #fff; }
+.hero.groom { background: linear-gradient(135deg,#1a2744,#3B4CB8); }
+.hero.bride { background: linear-gradient(135deg,#4a1a2e,#B83B6E); }
+.hero-amount { font-size: 32px; font-weight: 800; }
+
+/* Table */
+.table-wrap { background: #fff; border-radius: 20px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+td, th { padding: 10px; font-size: 12px; text-align: center; }
+th { color: #8B95A1; }
+
+/* Loading */
+.loading { text-align: center; padding: 60px; }
+.error-box { padding: 40px; text-align: center; }
 </style>
 </head>
+
 <body>
 
-<!-- 기존 HTML 그대로 유지 -->
 <div class="header">
   <div class="header-inner">
-    <div class="logo-wrap">
-      <div class="logo-circle">
-        <svg width="40" height="40" viewBox="0 0 40 40">
-          <circle cx="20" cy="20" r="20" fill="#F5F0E8"/>
-          <text x="20" y="15" text-anchor="middle" font-size="7" fill="#F5C842">wedding</text>
-          <text x="20" y="25" text-anchor="middle" font-size="7" fill="#F5C842">marchejeu</text>
-        </svg>
-      </div>
-      <div class="logo-text-wrap">
-        <div class="logo-main">wedding marchejeu</div>
-        <div class="logo-sub-text">축의금 관리 서비스</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <span class="updated-at" id="updated-at"></span>
-      <button class="refresh-btn" id="refresh-btn" onclick="loadData()">🔄</button>
-    </div>
+    <div class="logo-main">wedding marchejeu</div>
+    <button onclick="loadData()">🔄</button>
   </div>
 </div>
 
 <div id="main-content" class="content">
-  <div class="loading">
-    <div class="spinner-blue"></div>
-    <div class="loading-text">데이터 불러오는 중...</div>
-  </div>
+  <div class="loading">데이터 불러오는 중...</div>
 </div>
 
 <script>
 
-// ✅ URL 파라미터 방식으로 변경
+// URL 파라미터
 const params = new URLSearchParams(window.location.search);
 const CLIENT_CODE = params.get("code");
 const CLIENT_SIDE = params.get("side") || "신랑";
 const IS_GROOM = CLIENT_SIDE === '신랑';
 
-// ✅ 여기에 Apps Script URL 넣기
+// ⭐ 여기만 바꾸면 됨
 const API_URL = "https://script.google.com/macros/s/AKfycbx-WHuLzcmFQoSX-JRpstARU5Ap4l6b6wIRAmbKH7xmuCorXaX0Eauu1XGl929HdU4/exec";
 
-let records = null;
+let records = [];
 
+// 데이터 불러오기
 function loadData() {
-  document.getElementById('refresh-btn').classList.add('spinning');
+  document.getElementById('main-content').innerHTML = '<div class="loading">불러오는 중...</div>';
 
   fetch(`${API_URL}?code=${CLIENT_CODE}&side=${CLIENT_SIDE}`)
     .then(res => res.json())
     .then(data => {
-      document.getElementById('refresh-btn').classList.remove('spinning');
-
       if (data.error) {
-        document.getElementById('main-content').innerHTML = `
-          <div class="error-box">
-            <div class="error-msg">${data.error}</div>
-          </div>`;
+        document.getElementById('main-content').innerHTML =
+          `<div class="error-box">${data.error}</div>`;
         return;
       }
 
       records = data.records;
-
-      const now = new Date();
-      document.getElementById('updated-at').textContent =
-        now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-
-      render();
+      renderDashboard();
     })
     .catch(() => {
-      document.getElementById('main-content').innerHTML = `
-        <div class="error-box">
-          <div class="error-msg">데이터 불러오기 실패</div>
-        </div>`;
+      document.getElementById('main-content').innerHTML =
+        `<div class="error-box">데이터 불러오기 실패</div>`;
     });
 }
 
-function render() {
-  if (!records) return;
-
+// 대시보드 렌더
+function renderDashboard() {
   const total = records.reduce((s,r)=>s+r.total,0);
 
   document.getElementById('main-content').innerHTML = `
     <div class="hero ${IS_GROOM ? 'groom':'bride'}">
-      <div class="hero-label">${CLIENT_SIDE} 측 총 축의금</div>
+      <div>${CLIENT_SIDE} 측 총 축의금</div>
       <div class="hero-amount">${total.toLocaleString()}원</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>성함</th>
+            <th>금액</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(r=>`
+            <tr>
+              <td>${r.name}</td>
+              <td>${r.total.toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     </div>
   `;
 }
 
-// 초기 실행
+// 실행
 loadData();
 
 </script>
